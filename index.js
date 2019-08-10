@@ -11,8 +11,7 @@ function checkTitle(req, res, next) {
 }
 
 function getTime(req, res, next) {
-  const time = new Date();
-  req.time = time;
+  req.time = new Date();
   next();
 };
 
@@ -30,8 +29,17 @@ function getTime(req, res, next) {
 // });
 
 app.get('/', function (req, res) {
-  res.status(200).write('Are you OK?');
+  res.status(200).send('Are you OK?');
 });
+
+// app.use('/', function (req, res, next) {
+//   console.log(req.url + ' This is root app.use. Time is now: ' + 'Time: %d', Date.now() );
+//   next();
+// });
+
+
+
+
 
 app.get('/api/greeting/:name', checkTitle, getTime, (req, res) => {
 
@@ -47,10 +55,50 @@ app.get('/api/greeting/:name', checkTitle, getTime, (req, res) => {
 app.get('/api/greeting/:title/:name', (req, res) => {
   const {title, name} = req.params;
   console.log(req.params);
-  res.write(`Hello ${title.toUpperCase()}.${name}`);
+  res.send(`Hello ${title.toUpperCase()}.${name}`);
 });
+//-----
+// app.get('/user/:id', function (req, res, next) {
+//   console.log('although this matches')
+//   next()
+// })
+//
+// app.param('id', function (req, res, next, id) {
+//   console.log('App.param CALLED ONLY ONCE' + `and the ID is ${id}.`)
+//   next()
+// })
+//
+// app.get('/user/:id', function (req, res) {
+//   console.log('and this matches too')
+//   res.end()
+// })
+//-----
 
+// customizing the behavior of app.param()
+app.param(function (param, option) {
+  return function (req, res, next, val) {
+    // console.log(`Req: ${req}`);
+    // console.log(`Res: ${res}`);
+    // console.log(`Next: ${next}`);
+    console.log(`Val: ${val}`);
+    // console.log(`Param: ${param}`);
+    console.log(`Option: ${option}`);
+    if (val === option) {
+      console.log('val = option')
+      next()
+    } else {
+      console.log('val != option!')
+      next()
+    }
+  }
+})
 
+// using the customized app.param()
+app.param('id', 1337)
 
+// route to trigger the capture
+app.get('/user/:id', function (req, res) {
+  res.send('OK' + `The ID is: ${req.params.id}.`)
+})
 
 app.listen(3000);
